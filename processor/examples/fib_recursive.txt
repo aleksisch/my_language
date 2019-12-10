@@ -1,0 +1,45 @@
+IN
+
+CALL fibo
+OUT
+JMP end
+
+:fibo
+
+POP AX
+
+PUSH AX
+PUSH 3 		;if ax<3
+
+JA label
+
+PUSH AX
+PUSH AX
+PUSH -1
+ADD
+
+CALL fibo
+
+POP BX		;POP AX - 1 FIBO TO BX
+
+PUSH -2
+ADD
+POP CX
+PUSH BX
+PUSH CX
+CALL fibo
+ADD
+
+:end_label
+
+RET
+
+
+:label
+PUSH 1
+JMP end_label
+
+
+
+:end
+END

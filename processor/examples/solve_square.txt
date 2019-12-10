@@ -1,0 +1,114 @@
+MEOW
+
+IN
+IN
+IN
+POP CX
+POP BX
+POP AX
+
+PUSH AX
+PUSH 0
+JAE is_root
+
+CALL discr   
+
+PUSH DX
+PUSH 0
+JA no_d     
+
+PUSH DX
+PUSH 0
+JAE null_d
+
+CALL root_to_ax_bx
+PUSH 2
+OUT
+PUSH AX
+PUSH BX
+OUT
+OUT
+JMP end
+
+:discr
+PUSH AX
+PUSH CX
+PUSH -4
+MUL
+MUL
+PUSH BX
+PUSH BX
+MUL
+ADD
+POP DX
+RET
+
+:null_d
+PUSH 1
+OUT
+PUSH 2
+PUSH AX
+MUL
+
+PUSH -1
+PUSH BX
+MUL
+
+DIV
+OUT
+JMP end
+
+:no_d
+PUSH 10101010
+OUT
+JMP end
+
+:root_to_ax_bx
+PUSH AX
+PUSH 2
+MUL
+PUSH AX
+PUSH 2
+MUL
+PUSH BX
+PUSH -1
+MUL
+PUSH DX
+SQRT
+ADD
+DIV
+POP AX
+PUSH BX
+PUSH -1
+MUL
+PUSH DX
+SQRT
+PUSH -1
+MUL
+ADD
+DIV
+POP BX
+RET
+
+:is_root
+PUSH BX
+PUSH 0
+JAE much
+PUSH 1
+OUT
+PUSH BX
+
+PUSH -1
+PUSH CX
+MUL
+
+DIV
+OUT
+JMP end
+
+:much
+PUSH 888888888
+OUT
+JMP end
+
+:end

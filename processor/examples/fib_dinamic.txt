@@ -1,0 +1,36 @@
+IN
+PUSH -2
+ADD
+POP DX
+
+PUSH 1
+PUSH 1
+
+
+PUSH DX
+PUSH 1
+JA end
+
+:fibo
+POP AX
+POP BX
+
+PUSH AX
+PUSH BX
+ADD
+POP BX
+PUSH AX
+PUSH BX
+
+PUSH DX 
+PUSH -1
+ADD
+POP DX
+PUSH DX
+PUSH 1
+JA end
+JMP fibo
+
+:end
+OUT
+END

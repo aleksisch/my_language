@@ -1,0 +1,30 @@
+PUSH 1
+IN
+
+
+CALL fact
+OUT
+JMP end
+
+:fact
+POP AX
+PUSH AX
+
+PUSH 2
+PUSH AX
+
+JA label1
+:factcall
+
+MUL
+RET
+
+:label1
+PUSH -1
+PUSH AX
+ADD
+
+CALL fact
+JMP factcall
+
+:end
