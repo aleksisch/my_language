@@ -30,7 +30,7 @@ int CPU(cpu_struct *processor, const char* result_file,
     while (counter_byte < size_bin)
     {
         line++;
-        if (0) ;
+        if (0);
 
         #include "proc_commands.h"
         else

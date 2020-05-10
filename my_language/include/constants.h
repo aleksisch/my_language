@@ -46,6 +46,7 @@ namespace Operands
         RET,
         WHILE,
         IF,
+        ELSE,
         MORE,
         MOREEQ,
         LESSEQ,

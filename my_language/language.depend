@@ -1,9 +1,9 @@
 # depslib dependency file v1.0
-1575914077 source:/home/aleksey/c++/cppp/my_language/main.cpp
+1575978333 source:/home/aleksey/c++/cppp/my_language/main.cpp
 	<iostream>
 	"include/MainHeader.h"
 
-1575919406 /home/aleksey/c++/cppp/my_language/include/MainHeader.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/MainHeader.h
 	<string>
 	<string.h>
 	<stdio.h>
@@ -19,29 +19,29 @@
 	"Parser.h"
 	"Assembler.h"
 
-1575971825 /home/aleksey/c++/cppp/my_language/include/constants.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/constants.h
 
-1575757811 /home/aleksey/c++/cppp/my_language/include/Node.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/Node.h
 
-1575919415 /home/aleksey/c++/cppp/my_language/include/CalcTree.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/CalcTree.h
 
-1575971810 /home/aleksey/c++/cppp/my_language/include/OperationArray.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/OperationArray.h
 
-1575832383 /home/aleksey/c++/cppp/my_language/include/WorkString.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/WorkString.h
 	"../include/MainHeader.h"
 
-1575971640 /home/aleksey/c++/cppp/my_language/include/NodeFunction.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/NodeFunction.h
 	"../include/MainHeader.h"
 	"WorkString.h"
 
 1575751251 /home/aleksey/c++/cppp/my_language/include/CalcFunction.h
 
-1575749581 /home/aleksey/c++/cppp/my_language/include/DiffRules.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/DiffRules.h
 	"CalcTree.h"
 
-1575926608 /home/aleksey/c++/cppp/my_language/include/Parser.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/Parser.h
 	"MainHeader.h"
 
-1575972456 /home/aleksey/c++/cppp/my_language/include/Assembler.h
+1575978333 /home/aleksey/c++/cppp/my_language/include/Assembler.h
 	"MainHeader.h"
 

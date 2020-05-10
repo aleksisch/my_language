@@ -2,21 +2,19 @@ scan(a);
 scan(b);
 scan(c);
 
-func f
+func f(x)
 {
 	print(a);
 	return (a);
 };
 
-func getDiff
+func getDiff(x)
 {
 	d = b*b - 4*a*c;
 	return d;
 };
-d = getDiff;
+d = getDiff(0);
 print(d);
-
-f;
 
 x = 1;
 

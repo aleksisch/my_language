@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../../processor/commands_name.h
+
+../../processor/string_define.h
+
+../inc/Compiler.h
+vector
+-
+fstream
+-
+sstream
+-
+string
+-
+set
+-
+algorithm
+-
+../../processor/commands_name.h
+../../processor/commands_name.h
+../../processor/string_define.h
+../../processor/string_define.h
+
+/home/aleksey/programming/Ded/my_lang/Compiler/main.cpp
+iostream
+-
+fstream
+-
+Compiler.h
+/home/aleksey/programming/Ded/my_lang/Compiler/Compiler.h
+

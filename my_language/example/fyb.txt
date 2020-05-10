@@ -1,0 +1,66 @@
+ 
+func fibdyn(x)
+{
+	s1 = 1;
+	s2 = 1;
+	while (x > 2)
+	{
+		x = x - 1;
+		tmp = s2;
+		s2 = s2 + s1;
+		s1 = tmp;
+	};
+
+	return s2;
+};
+
+func fibrec(y)
+{
+	if (y <= 2)
+		return 1;
+	return (fibrec(y - 1) + fibrec(y - 2));
+};
+
+scan(x);
+i = 1;
+while (i < x)
+{
+	print(fibrec(i));
+	print(fibdyn(i));
+	i = i + 1;
+};
+a = 0;
+b = 0;
+c = 0;
+
+scan(a);
+scan(b);
+scan(c);
+d = b*b - 4*a*c;
+x1 = ((-1) * b + d^0.5) / ( 2 * a);
+x2 = ((0-1)*b - d^0.5) / (2 * a);
+
+if (a != 0)
+{
+	if (d < 0)
+		print(66666);
+	if (d == 0)
+		print(x1);
+	if (d > 0)
+	{
+		print(x1);
+		print(x2);
+	};
+};
+if (a == 0)
+{
+	if (b == 0)
+	{
+		if (c == 0)
+			print(88888);
+		if (c != 0)
+			print(-1111);
+	};
+	if (b != 0)
+		print((-1)*c/b);
+};

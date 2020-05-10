@@ -30,7 +30,6 @@ TreeNode<type_t>* TreeNode<type_t>::Copy()
 bool IsMath(int x)
 {
     using namespace Operands;
-    printf("%d", x);
     if (x == SUB  || x == ADD  || x == DIV || x == MUL  ||
         x == SIN  || x == COS  || x == TAN || x == TANH ||
         x == SINH || x == COSH || x == POW || x == LN)
