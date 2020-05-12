@@ -1,12 +1,18 @@
 #define NOLATEX
 #include <iostream>
-#include "include/MainHeader.h"
+#include "MainHeader.h"
 
-int main()
+int main(int argc, char** argv)
 {
+    if (argc == 1) 
+    {
+        printf("Please enter input file\n");
+        return 0;
+    }
+
     TreeNode<double>* cur = new TreeNode<double>;
 
-    cur = Parser<double>::CreateTree();
+    cur = Parser<double>::CreateTree(argv[1]);
 
     if (cur == nullptr)
     {
@@ -20,7 +26,14 @@ int main()
 
     GraphToDot(cur);
 
-    Assembler<double>::GraphToAsm(cur);
+    if (argc == 3) 
+    {
+        Assembler<double>::GraphToAsm(cur, argv[2]);
+    }
+    else
+    {
+        Assembler<double>::GraphToAsm(cur);
+    }
 
     WriteGraphFile(cur);
 

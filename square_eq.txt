@@ -1,0 +1,32 @@
+scan(a);
+scan(b);
+scan(c);
+
+func f(x)
+{
+	print(a);
+	return (a);
+};
+
+func g(aaa)
+{
+	return (aaa*aaa);
+};
+
+func getDiff(x)
+{
+	d = b*b - 4*a*c;
+	return d;
+};
+d = getDiff(0);
+print(d);
+
+print(g(5));
+
+x = 1;
+
+if (d >= 0)
+{
+	print((0-b + d^(0.5)) / (2 * a));
+	print((0-b - d^(0.5)) / (2 * a));
+};
