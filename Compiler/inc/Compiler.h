@@ -52,6 +52,7 @@ private:
     void AddLabel(std::ifstream &input);
     void UpdateJmpList();
     void ArithmeticOperations(std::string opcode, int type);
+    void WriteBinInt(int val);
 public:
     explicit GenerateBinary(const std::string &input_filename);
     explicit operator std::string() {
@@ -134,14 +135,17 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
     std::stringstream tmpsstream;
     tmpsstream << std::fstream("src/IOlib.s").rdbuf();
     binary_file += tmpsstream.str();
-
     ReserveVariables();
     while (!input.eof()) {
         char tmp_cmd;
         char type;
         command_array.emplace_back(input.tellg(), binary_file.size());
-        input.read(&tmp_cmd, 1);
-        input.read(&type, 1);
+        if (!input.read(&tmp_cmd, 1)) {
+            break;
+        }
+        if (!input.read(&type, 1)) {
+            throw "Error extra byte at the end of file";
+        }
         Commands cmd = static_cast<Commands>(tmp_cmd);
         if (cmd == Commands::JMP) {
             binary_file += StrToHex("e9");           //jmp near opcode
@@ -153,20 +157,22 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
         } else if (cmd == Commands::MUL) {
             ArithmeticOperations("480fafc3", type);               //imul rax, rbx
         } else if (cmd == Commands::DIV) {
-            ArithmeticOperations("48f7fb", type);   //idiv rax, rbx
+            binary_file += StrToHex("48ba0000000000000000");
+            ArithmeticOperations("f7fb", type);   //idiv rax, rbx
         } else if (cmd == Commands::PUSH) {
             long long cur_num = ReadInt(input);
             if (type == static_cast<int>(TypeArg::REG)) {
                 binary_file += static_cast<unsigned char>(cur_num + 0x50);  //80?
             } else if (type == static_cast<int>(TypeArg::RAM)) {
-                binary_file += StrToHex("ff75");         //push [bp + 8 * cur_num]
-                binary_file += static_cast<unsigned char>(-1 * 8 * cur_num);
+                binary_file += StrToHex("ffb5");         //push [bp - 8 * cur_num]
+                WriteBinInt(-1 * 8 * cur_num);
             } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
                 binary_file += StrToHex("ff");
                 binary_file += static_cast<unsigned char>(cur_num + 0x30);
             } else if (type == static_cast<int>(TypeArg::ELEM_T)) {
                 binary_file += StrToHex("49bf");         //mov r15, ...
-                char* tmp = static_cast<char *>(static_cast<void *>(&cur_num));
+                long long tmplong = cur_num;
+                char* tmp = static_cast<char *>(static_cast<void *>(&tmplong));
                 std::string tmp_str(tmp, 8);
                 //std::reverse(tmp_str.begin(), tmp_str.end());     //depend on little endian
                 binary_file += tmp_str;
@@ -177,8 +183,8 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
             if (type == static_cast<int>(TypeArg::REG)) {
                 binary_file += static_cast<unsigned char>(cur_num + 0x58);
             } else if (type == static_cast<int>(TypeArg::RAM)) {
-                binary_file += StrToHex("8f45");         //pop [bp + 8 * cur_num]
-                binary_file += static_cast<unsigned char>(-1 * 8 * cur_num);
+                binary_file += StrToHex("8f85");         //pop [bp + 8 * cur_num]
+                WriteBinInt(-1 * 8 * cur_num);
             } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
                 binary_file += StrToHex("8f");
                 binary_file += static_cast<unsigned char>(cur_num);
@@ -194,6 +200,7 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
             int pos = -1 * binary_file.size() - 4 + 0x80;
             char* tmp = static_cast<char *>(static_cast<void *>(&pos));
             binary_file += std::string(tmp, 4);
+            std::cout << "enter in out " << input.tellg() << "\n";
         } else if (cmd == Commands::JA) {
             WriteJmp(input, "0f87");
         } else if (cmd == Commands::JAE) {
@@ -244,7 +251,7 @@ void GenerateBinary::ReserveVariables() {
 }
 
 void GenerateBinary::WriteJmp(std::ifstream &input, std::string jmp_opcode) {
-    binary_file += StrToHex("585b");      //pop rax; pop rbx
+    binary_file += StrToHex("5b58");      //pop rax; pop rbx
     binary_file += StrToHex("4839D8");    //cmp rax, rbx
     binary_file += StrToHex(jmp_opcode);         //jmp ...
     AddLabel(input);                          //add addr
@@ -262,11 +269,9 @@ void GenerateBinary::UpdateJmpList() {
             const int jmp_near_size = 4;
             int jmp_src = elem.second - label_arr.begin()->second;
             char* bin_label = static_cast<char *>(static_cast<void *>(&jmp_src));
-            std::cout << elem.second << " " << label_arr.begin()->second;
             for (int i = 0; i < jmp_near_size; i++) {
                 binary_file[label_arr.begin()->second - jmp_near_size + i] = bin_label[i];
             }
-            //binary_file.replace(label_arr.begin()->second - jmp_near_size, jmp_near_size, bin_label);
             label_arr.erase(label_arr.begin());
         }
     }
@@ -276,9 +281,16 @@ void GenerateBinary::ArithmeticOperations(std::string opcode, int type) {
 //    if (type != static_cast<int>(TypeArg::NO_ARG)) {
 //        throw "Bad type in Arithmetic operation, expected NO_ARG, get " + std::to_string(static_cast<int>(type));
 //    }
-    binary_file += StrToHex("585b");     //pop rax; pop rbx
+    binary_file += StrToHex("5b58");     //pop rax; pop rbx
     binary_file += StrToHex(opcode);
     binary_file += StrToHex("50");       //push rax
+}
+
+void GenerateBinary::WriteBinInt(int val) {
+    char* tmp = static_cast<char *>(static_cast<void *>(&val));
+    std::string tmp_str(tmp, 4);
+    //std::reverse(tmp_str.begin(), tmp_str.end());     //depend on little endian
+    binary_file += tmp_str;
 }
 
 #endif //COMPILER_COMPILER_H

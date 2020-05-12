@@ -1,5 +1,4 @@
- 
-func fibdyn(x)
+ func fibdyn(x)
 {
 	s1 = 1;
 	s2 = 1;
