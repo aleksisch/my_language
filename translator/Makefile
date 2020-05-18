@@ -14,3 +14,6 @@ build:
 run: 
 	@./$(OUT) $(INPUT) $(RESULT)
 	@chmod +x $(RESULT) 
+
+clean:
+	rm -f $(RESULT)

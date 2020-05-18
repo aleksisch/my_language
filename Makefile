@@ -13,7 +13,7 @@ FLAG = all
 
 all: make_asm compile make_elf run
 
-make_asm:
+asm:
 	@make $(FLAG) -C $(ASM_DIR) INPUT=../$(INPUT) RESULT=../$(ASM_FILE)
 
 compile:

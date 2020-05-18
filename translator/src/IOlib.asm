@@ -55,13 +55,25 @@ PrintChar:
 
 Scan:
 	xor r8, r8
+    call GetChar
+    cmp byte [tmp_byte], '-'
+    	jne .skipneg
+    call GetChar
+    xor rax, rax
+    mov al, [tmp_byte]
+    sub al, '0'
+    add r8, rax
+    neg r8
+    jmp .Loop
+
+    .skipneg:
+    	xor rax, rax
+    	mov al, [tmp_byte]
+    	sub al, '0'
+    	add r8, rax
 	.Loop:
-	    mov eax, 3
-	    mov ebx, 2
-	    mov ecx, tmp_byte
-	    mov edx, 1
-	    int 80h
-	    cmp byte [tmp_byte], 10
+		call GetChar
+	   	cmp byte [tmp_byte], 10
 	    	je .end
 	    imul r8, 10	
 	    xor rax, rax
@@ -71,3 +83,11 @@ Scan:
 	    jmp .Loop
 	.end:
 		ret
+
+GetChar:
+	mov eax, 3
+    mov ebx, 2
+    mov ecx, tmp_byte
+    mov edx, 1
+	int 80h
+	ret

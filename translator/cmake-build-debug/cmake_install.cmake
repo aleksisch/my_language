@@ -1,4 +1,4 @@
-# Install script for directory: /home/aleksey/programming/Ded/my_lang/Compiler
+# Install script for directory: /home/aleksey/programming/Ded/my_lang/translator
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/aleksey/programming/Ded/my_lang/Compiler/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/aleksey/programming/Ded/my_lang/translator/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

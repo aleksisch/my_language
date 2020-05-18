@@ -12,6 +12,7 @@
 #include <set>
 #include <algorithm>
 #include <deque>
+#include "opcode.h"
 
 enum class HeaderType {
     DEFAULT = 0,
@@ -39,6 +40,8 @@ enum class RegNumber {
 
 class GenerateBinary {
 private:
+    const int IN_ADDRESS = 0x80 - 2;
+    const int OUT_ADDRESS = 0x80 - 4;
     std::vector<std::pair<int, int>> command_array;
     std::string binary_file;
     std::string filename;
@@ -46,9 +49,6 @@ private:
     long long ReadInt(std::ifstream &input);
     double ReadDouble(std::ifstream &input);
     void ReserveVariables();
-    long long FindBinPosInOutput(int inp_file_pos) {};
-    void PrintDouble() {};
-    void ScanDouble() {};
     void WriteJmp(std::ifstream &input, std::string jmp_opcode);
     void AddLabel(std::ifstream &input);
     void UpdateJmpList();
@@ -56,7 +56,7 @@ private:
     void WriteBinInt(int val);
     void PushXMM(int n);
     void PopXMM(int n);
-    void WritePow();
+    void WriteSqrt();
 public:
     explicit GenerateBinary(const std::string &input_filename);
     explicit operator std::string() {
@@ -72,10 +72,6 @@ public:
         std::ofstream out(output_file);
         out << GetElfHeader() << std::string(GenerateBinary(input));
     }
-    enum class Error {
-        Commands_not_found,
-        BadOpcodeSize,
-    };
 };
 
 std::string StrToHex(std::string hex_str) {
@@ -107,7 +103,7 @@ std::string Compiler::GetElfHeader(HeaderType type) {
         res += StrToHex("0200");             //executable
         res += StrToHex("3e00");             //x86-64
         res += StrToHex("01000000");         //elf_format, only 1
-        res += StrToHex("8802400000000000"); //virtual entry address
+        res += StrToHex("c002400000000000"); //virtual entry address
         res += StrToHex("4000000000000000"); //program header table offset
         res += StrToHex("0000000000000000"); //section header table offset
         res += StrToHex("00000000");         //elf flag
@@ -153,34 +149,33 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
         }
         auto cmd = static_cast<Commands>(tmp_cmd);
         if (cmd == Commands::JMP) {
-            binary_file += StrToHex("e9");           //jmp near opcode
+            binary_file += opcode::JMP;
             AddLabel(input);
         } else if (cmd == Commands::ADD) {
-            ArithmeticOperations("f20f58c1", type);                 //add xmm0, xmm1
+            ArithmeticOperations(opcode::ADD_XMM0XMM1, type);
         } else if (cmd == Commands::SUB) {
-            ArithmeticOperations("f20f5cc1", type);                 //sub xmm0, xmm1
+            ArithmeticOperations(opcode::SUB_XMM0XMM1, type);
         } else if (cmd == Commands::MUL) {
-            ArithmeticOperations("f20f59c1", type);               //mul xmm0, xmm1
+            ArithmeticOperations(opcode::MUL_XMM0XMM1, type);
         } else if (cmd == Commands::DIV) {
-            ArithmeticOperations("f20f5ec1", type);   //div xmm0, xmm1
+            ArithmeticOperations(opcode::DIV_XMM0XMM1, type);
         } else if (cmd == Commands::PUSH) {
             int cur_num = ReadInt(input);
             if (type == static_cast<int>(TypeArg::REG)) {
                 PushXMM(cur_num);
             } else if (type == static_cast<int>(TypeArg::RAM)) {
-                binary_file += StrToHex("ffb5");         //push [bp - 8 * cur_num]
+                binary_file += opcode::PUSH_RAM;
                 WriteBinInt(-1 * 8 * cur_num);
             } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
                 binary_file += StrToHex("ff");
                 binary_file += static_cast<unsigned char>(cur_num + 0x30);
             } else if (type == static_cast<int>(TypeArg::ELEM_T)) {
-                binary_file += StrToHex("48b8");         //mov rax, ...
+                binary_file += opcode::PUSH_ELEM;
                 long long tmplong = cur_num;
                 char* tmp = static_cast<char *>(static_cast<void *>(&tmplong));
                 std::string tmp_str(tmp, 8);
-                //std::reverse(tmp_str.begin(), tmp_str.end());  //depend on little endian
                 binary_file += tmp_str;
-                binary_file += StrToHex("f2480f2ac8");   //cvtsi2sd xmm1, rax
+                binary_file += opcode::RAX_TO_XMM1;
                 PushXMM(1);
             }
         } else if (cmd == Commands::POP) {
@@ -188,61 +183,63 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
             if (type == static_cast<int>(TypeArg::REG)) {
                 PopXMM(cur_num);
             } else if (type == static_cast<int>(TypeArg::RAM)) {
-                binary_file += StrToHex("8f85");         //pop [bp + 8 * cur_num]
+                binary_file += opcode::POP_RAM;
                 WriteBinInt(-1 * 8 * cur_num);
             } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
                 binary_file += StrToHex("8f");
                 binary_file += static_cast<unsigned char>(cur_num);
             }
         } else if (cmd == Commands::IN) {
-            binary_file += StrToHex("e8");            //jmp ...
-            int pos = -1 * binary_file.size() - 2 + 0x80;
+            binary_file += opcode::CALL;
+            int pos = -1 * binary_file.size() + IN_ADDRESS;
             char* tmp = static_cast<char *>(static_cast<void *>(&pos));
             binary_file += std::string(tmp, 4);
-            binary_file += StrToHex("f2490f2ac8");      //cvtsi2sd xmm1,r8
+            binary_file += opcode::R8_TO_XMM1;
             PushXMM(1);                                     //push xmm1
         } else if (cmd == Commands::OUT) {
             PopXMM(0);
-            binary_file += StrToHex("f2480f2cc0");    //cvttsd2si rax, xmm0
-            binary_file += StrToHex("e8");            //jmp ...
-            int pos = -1 * binary_file.size() - 4 + 0x80;
+            binary_file += opcode::XMM0_TO_RAX;
+            binary_file += opcode::CALL;
+            int pos = -1 * binary_file.size() + OUT_ADDRESS;
             char* tmp = static_cast<char *>(static_cast<void *>(&pos));
             binary_file += std::string(tmp, 4);
         } else if (cmd == Commands::JA) {
-            WriteJmp(input, "0f87");
+            WriteJmp(input, opcode::JA);
         } else if (cmd == Commands::JAE) {
-            WriteJmp(input, "0f83");
+            WriteJmp(input, opcode::JAE);
         } else if (cmd == Commands::JNE) {
-            WriteJmp(input, "0f85");
+            WriteJmp(input, opcode::JNE);
         } else if (cmd == Commands::JE) {
-            WriteJmp(input, "0f84");
+            WriteJmp(input, opcode::JE);
         } else if (cmd == Commands::JLE) {
-            WriteJmp(input, "0f86");
+            WriteJmp(input, opcode::JLE);
         } else if (cmd == Commands::JL) {
-            WriteJmp(input, "0f82");
+            WriteJmp(input, opcode::JL);
         } else if (cmd == Commands::JME) {
-            WriteJmp(input, "0f83");
+            WriteJmp(input, opcode::JME);
         } else if (cmd == Commands::JM) {
-            WriteJmp(input, "0f87");
+            WriteJmp(input, opcode::JM);
         } else if (cmd == Commands::CALL) {
-            binary_file += StrToHex("e8");
+            binary_file += opcode::CALL;
             AddLabel(input);
-            binary_file += StrToHex("50");          //push rax
+            binary_file += opcode::PUSH_RAX;
         } else if (cmd == Commands::RET) {
-            binary_file += StrToHex("58");          //pop rax
-            binary_file += StrToHex("c3");          //ret
+            binary_file += opcode::POP_RAX;
+            binary_file += opcode::RET;
         } else if (cmd == Commands::END) {
-            binary_file += StrToHex("b801000000bb00000000cd80");    //end of program
+            binary_file += opcode::END_OF_PROGRAM;
         } else if (cmd == Commands::POW) {
             if (type != static_cast<int>(TypeArg::NO_ARG)) {
                 throw "Bad Type of argument in pow, expected NO_ARG";
             } else {
-                WritePow();
+                WriteSqrt();
             }
+        } else {
+            throw "Bad opcode";
         }
     }
     UpdateJmpList();
-    binary_file += StrToHex("b801000000bb00000000cd80");    //end of program to avoid seg fault in program without end
+    binary_file += opcode::END_OF_PROGRAM;
 }
 
 double GenerateBinary::ReadDouble(std::ifstream &input) {
@@ -255,20 +252,18 @@ long long GenerateBinary::ReadInt(std::ifstream &input) {
     double tmp;
     input.readsome(static_cast<char *>(static_cast<void *>(&tmp)), 8);
     return static_cast<long long>(tmp);
-    return *static_cast<long long *>(static_cast<void*>(&tmp));
 }
 
 void GenerateBinary::ReserveVariables() {
-    binary_file += StrToHex("4889e5");   //mov rbp, rsp
-    binary_file += StrToHex("4881ecf0000000");   //reserve space to 20 variables of type double
+    binary_file += opcode::MOV_RBP_RSP;
+    binary_file += opcode::RESERVE_IN_STACK;
 }
 
 void GenerateBinary::WriteJmp(std::ifstream &input, std::string jmp_opcode) {
     PopXMM(1);
     PopXMM(0);
-    //binary_file += StrToHex("5b58");      //pop rbx; pop rax
-    binary_file += StrToHex("660f2fc1");    //comisd xmm0,xmm1
-    binary_file += StrToHex(jmp_opcode);         //jmp ...
+    binary_file += opcode::CMP_XMMs;
+    binary_file += jmp_opcode;
     AddLabel(input);                          //add addr
 }
 
@@ -293,36 +288,31 @@ void GenerateBinary::UpdateJmpList() {
 }
 
 void GenerateBinary::ArithmeticOperations(std::string opcode, int type) {
-//    if (type != static_cast<int>(TypeArg::NO_ARG)) {
-//        throw "Bad type in Arithmetic operation, expected NO_ARG, get " + std::to_string(static_cast<int>(type));
-//    }
-//  binary_file += StrToHex("5b58");     //pop rbx; pop rax
     PopXMM(1);
     PopXMM(0);
-    binary_file += StrToHex(opcode);
+    binary_file += opcode;
     PushXMM(0);
 }
 
 void GenerateBinary::WriteBinInt(int val) {
     char* tmp = static_cast<char *>(static_cast<void *>(&val));
     std::string tmp_str(tmp, 4);
-    //std::reverse(tmp_str.begin(), tmp_str.end());     //depend on little endian
     binary_file += tmp_str;
 }
 
 void GenerateBinary::PopXMM(int n) {
     switch (n) {                                            //movsd  xmm0, [rsp]
         case 0:
-            binary_file += StrToHex("f20f100424");
+            binary_file += opcode::POP_XMM0;
             break;
         case 1:
-            binary_file += StrToHex("f20f100c24");
+            binary_file += opcode::POP_XMM1;
             break;
         case 2:
-            binary_file += StrToHex("f20f101424");
+            binary_file += opcode::POP_XMM2;
             break;
         case 3:
-            binary_file += StrToHex("f20f101c24");
+            binary_file += opcode::POP_XMM3;
             break;
         default:
             throw "Bad number of xmm register in pop XMM";
@@ -332,28 +322,28 @@ void GenerateBinary::PopXMM(int n) {
 
 void GenerateBinary::PushXMM(int n) {
     binary_file += StrToHex("4883ec08");        //add rsp, 8
-    switch (n) {                                        //movsd  [rsp], xmm0
+    switch (n) {
         case 0:
-            binary_file += StrToHex("f20f110424");
+            binary_file += opcode::PUSH_XMM0;
             break;
         case 1:
-            binary_file += StrToHex("f20f110c24");
+            binary_file += opcode::PUSH_XMM1;
             break;
         case 2:
-            binary_file += StrToHex("f20f111424");
+            binary_file += opcode::PUSH_XMM2;
             break;
         case 3:
-            binary_file += StrToHex("f20f111c24");
+            binary_file += opcode::PUSH_XMM3;
             break;
         default:
             throw "Bad number of xmm register in push XMM";
     }
 }
 
-void GenerateBinary::WritePow() {
-    PopXMM(1);  //degree of pow
+void GenerateBinary::WriteSqrt() {
     PopXMM(1);
-    binary_file += StrToHex("f20f51c1");
+    PopXMM(1);
+    binary_file += opcode::SQRT_XMM1;
     PushXMM(0);
 }
 

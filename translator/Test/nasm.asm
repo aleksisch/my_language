@@ -7,6 +7,8 @@ _start:
 	sqrtsd xmm0, xmm1
 	comisd xmm0, xmm1
 	jb end
+	jmp near end
+	jmp end
 
 
 end:

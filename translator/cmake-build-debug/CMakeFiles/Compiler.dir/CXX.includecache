@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../../compiler/inc/commands_name.h
+
+../../compiler/inc/string_define.h
+
+../inc/Compiler.h
+vector
+-
+fstream
+-
+sstream
+-
+string
+-
+set
+-
+algorithm
+-
+deque
+-
+opcode.h
+../inc/opcode.h
+../../compiler/inc/commands_name.h
+../../compiler/inc/commands_name.h
+../../compiler/inc/string_define.h
+../../compiler/inc/string_define.h
+
+../inc/opcode.h
+
+/home/aleksey/programming/Ded/my_lang/translator/main.cpp
+iostream
+-
+fstream
+-
+Compiler.h
+/home/aleksey/programming/Ded/my_lang/translator/Compiler.h
+

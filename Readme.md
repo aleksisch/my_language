@@ -1,5 +1,5 @@
 # Esoteric programming language 
-	This is simple esoteric language, something between python and c++.
+This is simple esoteric language, something between python and c++.
 
 ## How it work?
 
@@ -11,3 +11,9 @@ Second part is a compile from my assembly language to my binary code. Then you c
 
 After it you can convert my binary code to x86-64 binary elf file and run it on real cpu.
 
+## How to use it? 
+
+To compile code:
+```make INPUT=your_file ELF_FILE=result.elf```
+If you want compile some code on assembler, then run 
+```make asm INPUT=asm_file```
