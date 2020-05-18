@@ -14,6 +14,9 @@ After it you can convert my binary code to x86-64 binary elf file and run it on 
 ## How to use it? 
 
 To compile code:
+
 ```make INPUT=your_file ELF_FILE=result.elf```
+
 If you want compile some code on assembler, then run 
+
 ```make asm INPUT=asm_file```
