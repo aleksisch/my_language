@@ -14,11 +14,6 @@
 #include <deque>
 #include "opcode.h"
 
-enum class HeaderType {
-    DEFAULT = 0,
-
-};
-
 enum class Commands {
     #define DEF(name) name,
     #include "../../compiler/inc/commands_name.h"
@@ -32,7 +27,6 @@ enum class TypeArg {
     ELEM_T      = 1 << 4,
     COMMENT     = 1 << 5,
 };
-
 enum class RegNumber {
     #define STR_COMMANDS(reg, name) reg,
     #include "../../compiler/inc/string_define.h"
@@ -44,7 +38,7 @@ private:
     const int OUT_ADDRESS = 0x80 - 4;
     std::vector<std::pair<int, int>> command_array;
     std::string binary_file;
-    std::string filename;
+    std::ifstream input;
     std::set<std::pair<int, int>> label_arr;
     long long ReadInt(std::ifstream &input);
     double ReadDouble(std::ifstream &input);
@@ -66,7 +60,7 @@ public:
 
 class Compiler {
 private:
-    std::string GetElfHeader(HeaderType type = HeaderType::DEFAULT);
+    std::string GetElfHeader();
 public:
     explicit Compiler(const std::string& input = "assembler.bin", const std::string &output_file = "output") {
         std::ofstream out(output_file);
@@ -91,45 +85,40 @@ std::string StrToHex(std::string hex_str) {
     return res;
 };
 
-std::string Compiler::GetElfHeader(HeaderType type) {
-    if (type == HeaderType::DEFAULT) {
-        std::string res;
-        res += StrToHex("7f454c46");         //ELF start
-        res += StrToHex("02");               //64bit
-        res += StrToHex("01");               //little endian
-        res += StrToHex("01");               //elf_ver
-        res += StrToHex("00");               //ABI type
-        res += StrToHex("0000000000000000"); //reserved
-        res += StrToHex("0200");             //executable
-        res += StrToHex("3e00");             //x86-64
-        res += StrToHex("01000000");         //elf_format, only 1
-        res += StrToHex("c002400000000000"); //virtual entry address
-        res += StrToHex("4000000000000000"); //program header table offset
-        res += StrToHex("0000000000000000"); //section header table offset
-        res += StrToHex("00000000");         //elf flag
-        res += StrToHex("3800");             //sizeof header
-        res += StrToHex("3800");             //sizeof program table
-        res += StrToHex("0100");             //number of program headers
-        res += StrToHex("4000");             //sizeof section header
-        res += StrToHex("00000000");         //number of section header and shstrndx
-        res += StrToHex("01000000");         //text segment?
-
-        //We use write in IN and OUT instructions to avoid other section
-        res += StrToHex("07000000");         //r+x+w
-
-        res += StrToHex("0000000000000000"); //offset from start of file
-        res += StrToHex("0000400000000000"); //virtual segment address
-        res += StrToHex("0000400000000000"); //physical address
-        res += StrToHex("3e11000000000000"); //size of program in file
-        res += StrToHex("3e11000000000000"); //size of program in memory
-        res += StrToHex("0100000000000000"); //align power of two
-        return res;
-    }
+std::string Compiler::GetElfHeader() {
+    std::string res;
+    res += StrToHex("7f454c46");         //ELF start
+    res += StrToHex("02");               //64bit
+    res += StrToHex("01");               //little endian
+    res += StrToHex("01");               //elf_ver
+    res += StrToHex("00");               //ABI type
+    res += StrToHex("0000000000000000"); //reserved
+    res += StrToHex("0200");             //executable
+    res += StrToHex("3e00");             //x86-64
+    res += StrToHex("01000000");         //elf_format, only 1
+    res += StrToHex("c002400000000000"); //virtual entry address
+    res += StrToHex("4000000000000000"); //program header table offset
+    res += StrToHex("0000000000000000"); //section header table offset
+    res += StrToHex("00000000");         //elf flag
+    res += StrToHex("3800");             //sizeof header
+    res += StrToHex("3800");             //sizeof program table
+    res += StrToHex("0100");             //number of program headers
+    res += StrToHex("4000");             //sizeof section header
+    res += StrToHex("00000000");         //number of section header and shstrndx
+    res += StrToHex("01000000");         //text segment?
+    //We use write in IN and OUT instructions to avoid other section
+    res += StrToHex("07000000");         //r+x+w
+    res += StrToHex("0000000000000000"); //offset from start of file
+    res += StrToHex("0000400000000000"); //virtual segment address
+    res += StrToHex("0000400000000000"); //physical address
+    res += StrToHex("3e11000000000000"); //size of program in file
+    res += StrToHex("3e11000000000000"); //size of program in memory
+    res += StrToHex("0100000000000000"); //align power of two
+    return res;
 }
 
 GenerateBinary::GenerateBinary(const std::string &input_filename) {
-    filename = input_filename;
-    std::ifstream input(input_filename, std::ios::binary);
+    input = std::ifstream(input_filename, std::ios::binary);
     std::vector<int> vec;
     std::multiset<std::pair<int, int>> label_arr;
     std::stringstream tmpsstream;
@@ -145,7 +134,7 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
             break;
         }
         if (!input.read(&type, 1)) {
-            throw "Error extra byte at the end of file";
+            throw "Error, extra byte at the end of file";
         }
         auto cmd = static_cast<Commands>(tmp_cmd);
         if (cmd == Commands::JMP) {
@@ -346,5 +335,4 @@ void GenerateBinary::WriteSqrt() {
     binary_file += opcode::SQRT_XMM1;
     PushXMM(0);
 }
-
 #endif //COMPILER_COMPILER_H

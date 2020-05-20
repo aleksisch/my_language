@@ -11,7 +11,7 @@ ELF_FILE = program.elf
 FLAG = all
 
 
-all: make_asm compile make_elf run
+all: asm compile make_elf run
 
 asm:
 	@make $(FLAG) -C $(ASM_DIR) INPUT=../$(INPUT) RESULT=../$(ASM_FILE)

@@ -1,5 +1,6 @@
 global _start
 _start:
+	lea rax, [rbx + rcx*4 + 123]
 	mov rax, 9
 	mov rbx, 16
 	cvtsi2sd xmm0, rax
