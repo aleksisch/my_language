@@ -51,11 +51,18 @@ private:
     void PushXMM(int n);
     void PopXMM(int n);
     void WriteSqrt();
+    void WritePush(int type);
+    void WritePop(int type);
+    void WriteIn(int type);
 public:
     explicit GenerateBinary(const std::string &input_filename);
     explicit operator std::string() {
         return binary_file;
     }
+
+    void WriteOut(int type);
+
+    void WriteSqrt(int type);
 };
 
 class Compiler {
@@ -136,95 +143,76 @@ GenerateBinary::GenerateBinary(const std::string &input_filename) {
         if (!input.read(&type, 1)) {
             throw "Error, extra byte at the end of file";
         }
-        auto cmd = static_cast<Commands>(tmp_cmd);
-        if (cmd == Commands::JMP) {
-            binary_file += opcode::JMP;
-            AddLabel(input);
-        } else if (cmd == Commands::ADD) {
-            ArithmeticOperations(opcode::ADD_XMM0XMM1, type);
-        } else if (cmd == Commands::SUB) {
-            ArithmeticOperations(opcode::SUB_XMM0XMM1, type);
-        } else if (cmd == Commands::MUL) {
-            ArithmeticOperations(opcode::MUL_XMM0XMM1, type);
-        } else if (cmd == Commands::DIV) {
-            ArithmeticOperations(opcode::DIV_XMM0XMM1, type);
-        } else if (cmd == Commands::PUSH) {
-            int cur_num = ReadInt(input);
-            if (type == static_cast<int>(TypeArg::REG)) {
-                PushXMM(cur_num);
-            } else if (type == static_cast<int>(TypeArg::RAM)) {
-                binary_file += opcode::PUSH_RAM;
-                WriteBinInt(-1 * 8 * cur_num);
-            } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
-                binary_file += StrToHex("ff");
-                binary_file += static_cast<unsigned char>(cur_num + 0x30);
-            } else if (type == static_cast<int>(TypeArg::ELEM_T)) {
-                binary_file += opcode::PUSH_ELEM;
-                long long tmplong = cur_num;
-                char* tmp = static_cast<char *>(static_cast<void *>(&tmplong));
-                std::string tmp_str(tmp, 8);
-                binary_file += tmp_str;
-                binary_file += opcode::RAX_TO_XMM1;
-                PushXMM(1);
-            }
-        } else if (cmd == Commands::POP) {
-            int cur_num = ReadInt(input);
-            if (type == static_cast<int>(TypeArg::REG)) {
-                PopXMM(cur_num);
-            } else if (type == static_cast<int>(TypeArg::RAM)) {
-                binary_file += opcode::POP_RAM;
-                WriteBinInt(-1 * 8 * cur_num);
-            } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
-                binary_file += StrToHex("8f");
-                binary_file += static_cast<unsigned char>(cur_num);
-            }
-        } else if (cmd == Commands::IN) {
-            binary_file += opcode::CALL;
-            int pos = -1 * binary_file.size() + IN_ADDRESS;
-            char* tmp = static_cast<char *>(static_cast<void *>(&pos));
-            binary_file += std::string(tmp, 4);
-            binary_file += opcode::R8_TO_XMM1;
-            PushXMM(1);                                     //push xmm1
-        } else if (cmd == Commands::OUT) {
-            PopXMM(0);
-            binary_file += opcode::XMM0_TO_RAX;
-            binary_file += opcode::CALL;
-            int pos = -1 * binary_file.size() + OUT_ADDRESS;
-            char* tmp = static_cast<char *>(static_cast<void *>(&pos));
-            binary_file += std::string(tmp, 4);
-        } else if (cmd == Commands::JA) {
-            WriteJmp(input, opcode::JA);
-        } else if (cmd == Commands::JAE) {
-            WriteJmp(input, opcode::JAE);
-        } else if (cmd == Commands::JNE) {
-            WriteJmp(input, opcode::JNE);
-        } else if (cmd == Commands::JE) {
-            WriteJmp(input, opcode::JE);
-        } else if (cmd == Commands::JLE) {
-            WriteJmp(input, opcode::JLE);
-        } else if (cmd == Commands::JL) {
-            WriteJmp(input, opcode::JL);
-        } else if (cmd == Commands::JME) {
-            WriteJmp(input, opcode::JME);
-        } else if (cmd == Commands::JM) {
-            WriteJmp(input, opcode::JM);
-        } else if (cmd == Commands::CALL) {
-            binary_file += opcode::CALL;
-            AddLabel(input);
-            binary_file += opcode::PUSH_RAX;
-        } else if (cmd == Commands::RET) {
-            binary_file += opcode::POP_RAX;
-            binary_file += opcode::RET;
-        } else if (cmd == Commands::END) {
-            binary_file += opcode::END_OF_PROGRAM;
-        } else if (cmd == Commands::POW) {
-            if (type != static_cast<int>(TypeArg::NO_ARG)) {
-                throw "Bad Type of argument in pow, expected NO_ARG";
-            } else {
-                WriteSqrt();
-            }
-        } else {
-            throw "Bad opcode";
+        switch (tmp_cmd) {
+            case static_cast<int>(Commands::JMP):
+                binary_file += opcode::JMP;
+                AddLabel(input);
+                break;
+            case static_cast<int>(Commands::ADD):
+                ArithmeticOperations(opcode::ADD_XMM0XMM1, type);
+                break;
+            case static_cast<int>(Commands::SUB):
+                ArithmeticOperations(opcode::SUB_XMM0XMM1, type);
+                break;
+            case static_cast<int>(Commands::MUL):
+                ArithmeticOperations(opcode::MUL_XMM0XMM1, type);
+                break;
+            case static_cast<int>(Commands::DIV):
+                ArithmeticOperations(opcode::DIV_XMM0XMM1, type);
+                break;
+            case static_cast<int>(Commands::PUSH):
+                WritePush(type);
+                break;
+            case static_cast<int>(Commands::POP):
+                WritePop(type);
+                break;
+            case static_cast<int>(Commands::IN):
+                WriteIn(type);
+                break;
+            case static_cast<int>(Commands::OUT):
+                WriteOut(type);
+                break;
+            case static_cast<int>(Commands::JA):
+                WriteJmp(input, opcode::JA);
+                break;
+            case static_cast<int>(Commands::JAE):
+                WriteJmp(input, opcode::JAE);
+                break;
+            case static_cast<int>(Commands::JNE):
+                WriteJmp(input, opcode::JNE);
+                break;
+            case static_cast<int>(Commands::JE):
+                WriteJmp(input, opcode::JE);
+                break;
+            case static_cast<int>(Commands::JLE):
+                WriteJmp(input, opcode::JLE);
+                break;
+            case static_cast<int>(Commands::JL):
+                WriteJmp(input, opcode::JL);
+                break;
+            case static_cast<int>(Commands::JME):
+                WriteJmp(input, opcode::JME);
+                break;
+            case static_cast<int>(Commands::JM):
+                WriteJmp(input, opcode::JM);
+                break;
+            case static_cast<int>(Commands::CALL):
+                binary_file += opcode::CALL;
+                AddLabel(input);
+                binary_file += opcode::PUSH_RAX;
+                break;
+            case static_cast<int>(Commands::RET):
+                binary_file += opcode::POP_RAX;
+                binary_file += opcode::RET;
+                break;
+            case static_cast<int>(Commands::END):
+                binary_file += opcode::END_OF_PROGRAM;
+                break;
+            case static_cast<int>(Commands::POW):
+                WriteSqrt(type);
+                break;
+            default:
+                throw "Bad opcode";
         }
     }
     UpdateJmpList();
@@ -329,10 +317,70 @@ void GenerateBinary::PushXMM(int n) {
     }
 }
 
-void GenerateBinary::WriteSqrt() {
+void GenerateBinary::WriteSqrt(int type) {
+    if (type != static_cast<int>(TypeArg::NO_ARG)) {
+        throw "Bad Type of argument in pow, expected NO_ARG";
+    }
     PopXMM(1);
     PopXMM(1);
     binary_file += opcode::SQRT_XMM1;
     PushXMM(0);
 }
+
+void GenerateBinary::WritePush(int type) {
+    int cur_num = ReadInt(input);
+    if (type == static_cast<int>(TypeArg::REG)) {
+        PushXMM(cur_num);
+    } else if (type == static_cast<int>(TypeArg::RAM)) {
+        binary_file += opcode::PUSH_RAM;
+        WriteBinInt(-1 * 8 * cur_num);
+    } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
+        binary_file += StrToHex("ff");
+        binary_file += static_cast<unsigned char>(cur_num + 0x30);
+    } else if (type == static_cast<int>(TypeArg::ELEM_T)) {
+        binary_file += opcode::PUSH_ELEM;
+        long long tmplong = cur_num;
+        char *tmp = static_cast<char *>(static_cast<void *>(&tmplong));
+        std::string tmp_str(tmp, 8);
+        binary_file += tmp_str;
+        binary_file += opcode::RAX_TO_XMM1;
+        PushXMM(1);
+    } else {
+        throw "Bad type in WritePush";
+    };
+}
+
+void GenerateBinary::WritePop(int type) {
+    int cur_num = ReadInt(input);
+    if (type == static_cast<int>(TypeArg::REG)) {
+        PopXMM(cur_num);
+    } else if (type == static_cast<int>(TypeArg::RAM)) {
+        binary_file += opcode::POP_RAM;
+        WriteBinInt(-1 * 8 * cur_num);
+    } else if (type == (static_cast<int>(TypeArg::RAM) | static_cast<int>(TypeArg::REG))) {
+        binary_file += StrToHex("8f");
+        binary_file += static_cast<unsigned char>(cur_num);
+    } else {
+        throw "Bad type in WritePop";
+    }
+}
+
+void GenerateBinary::WriteIn(int type) {
+    binary_file += opcode::CALL;
+    int pos = -1 * binary_file.size() + IN_ADDRESS;
+    char *tmp = static_cast<char *>(static_cast<void *>(&pos));
+    binary_file += std::string(tmp, 4);
+    binary_file += opcode::R8_TO_XMM1;
+    PushXMM(1);                                     //push xmm1
+}
+
+void GenerateBinary::WriteOut(int type) {
+    PopXMM(0);
+    binary_file += opcode::XMM0_TO_RAX;
+    binary_file += opcode::CALL;
+    int pos = -1 * binary_file.size() + OUT_ADDRESS;
+    char *tmp = static_cast<char *>(static_cast<void *>(&pos));
+    binary_file += std::string(tmp, 4);
+}
+
 #endif //COMPILER_COMPILER_H

@@ -14,6 +14,8 @@
     <list default="true" id="437bf4d9-28a7-46e3-8cde-55fa6565b94d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inc/Compiler.h" beforeDir="false" afterPath="$PROJECT_DIR$/inc/Compiler.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/translator" beforeDir="false" afterPath="$PROJECT_DIR$/translator" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,6 +101,7 @@
       <workItem from="1589791622811" duration="2000" />
       <workItem from="1589796323351" duration="615000" />
       <workItem from="1589882796039" duration="2307000" />
+      <workItem from="1589979485293" duration="1970000" />
     </task>
     <servers />
   </component>
@@ -154,10 +157,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state width="926" height="526" key="XDebugger.FullValuePopup/67.27.1853.1053@67.27.1853.1053" timestamp="1589128577749" />
-    <state x="649" y="381" key="com.intellij.ide.util.TipDialog" timestamp="1589882795704">
+    <state x="649" y="381" key="com.intellij.ide.util.TipDialog" timestamp="1589979486842">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="649" y="381" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1589882795704" />
+    <state x="649" y="381" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1589979486842" />
     <state x="738" y="197" width="501" height="720" key="refactoring.ChangeSignatureDialog" timestamp="1589882927855">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>

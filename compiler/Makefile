@@ -14,10 +14,10 @@ debug: build
 	./$(OUT) $(INPUT) $(RESULT) debug
 
 build:
-	@g++ $(CFLAGS) $(CPP) -o $(OUT)
+	g++ $(CFLAGS) $(CPP) -o $(OUT)
 
 run: build
-	@./$(OUT) $(INPUT) $(RESULT)
+	./$(OUT) $(INPUT) $(RESULT)
 
 
 clean:
