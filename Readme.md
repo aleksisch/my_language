@@ -21,6 +21,27 @@ If you want compile some code on assembler, then run
 
 ```make asm INPUT=asm_file```
 
+## Comparison of two type CPU
+
+Time was measured on this program:
+
+```
+func fibrec(y)
+{
+	if (y <= 2)
+		return 1;
+	return (fibrec(y - 1) + fibrec(y - 2));
+};
+
+i = 1;
+while (i < 1000)
+{
+	tmp = fibrec(20);
+	i = i + 1;
+};
+print(111);
+```
+
 CPU time on a stack processor 
 
 ![](Test/Stack_cpu_time.png)
