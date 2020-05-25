@@ -25,6 +25,9 @@ make_elf:
 run:
 	@./$(ELF_FILE)
 
+compile_debug:
+	@make debug $(FLAG) -C $(COMPILER_DIR) INPUT=../$(ASM_FILE) RESULT=../$(BINARY_FILE)
+
 clean:
 	@rm -f $(BINARY_FILE)
 	@rm -f $(ELF_FILE)

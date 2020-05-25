@@ -20,3 +20,13 @@ To compile code:
 If you want compile some code on assembler, then run 
 
 ```make asm INPUT=asm_file```
+
+CPU time on a stack processor 
+
+![](Test/Stack_cpu_time.png)
+
+CPU time on a real assembly
+
+![](Test/Cpu_time.png)
+
+Ratio: 96/1
